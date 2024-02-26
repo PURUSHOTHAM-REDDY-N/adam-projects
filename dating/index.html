@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dating App</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+      }
+
+      #card {
+        border: 2px solid #ccc;
+        padding: 20px;
+        margin: 10px;
+        max-width: 300px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      #card img {
+        width: 100%;
+        max-height: 200px;
+        object-fit: cover;
+        border-radius: 10px;
+      }
+
+      #overview {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .male {
+        border-color: blue;
+      }
+
+      .female {
+        border-color: pink;
+      }
+
+      .error-message {
+        color: red;
+        margin-top: 10px;
+      }
+      .popup {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 20px;
+        background: white;
+        border: 2px solid #ccc;
+        border-radius: 10px;
+        z-index: 1;
+      }
+      .overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="score"></div>
+    <div id="card"></div>
+    <div>
+      <button onclick="filter('male')">Filter Men</button>
+      <button onclick="filter('female')">Filter Women</button>
+      <button onclick="filter('both')">Filter Both</button>
+    </div>
+    <div id="overview"></div>
+    <!-- Add the edit popup and overlay -->
+    <div class="overlay" id="overlay"></div>
+    <div class="popup" id="editPopup">
+      <label for="newName">New Name:</label>
+      <input type="text" id="newName" />
+      <br />
+      <label for="newAge">New Age:</label>
+      <input type="text" id="newAge" />
+      <br />
+      <label for="newPlace">New Place:</label>
+      <input type="text" id="newPlace" />
+      <br />
+      <button onclick="saveChanges()">Save Changes</button>
+      <button onclick="closePopup()">Cancel</button>
+    </div>
+
+    <script>
+      let score = 10;
+      let likedProfiles =
+        JSON.parse(localStorage.getItem("likedProfiles")) || [];
+      let currentProfile = null;
+      let genderFilter = "";
+      let profileIndex;
+
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "ArrowLeft") {
+          swipe("left");
+        } else if (event.key === "ArrowRight") {
+          swipe("right");
+        }
+      });
+
+      // Show all liked profiles when the page loads
+      window.onload = function () {
+        updateOverview();
+      };
+
+      function fetchRandomProfile() {
+        const url = genderFilter
+          ? `https://randomuser.me/api/?inc=gender,name,location,picture,dob&gender=${genderFilter}`
+          : "https://randomuser.me/api/?inc=gender,name,location,picture,dob";
+
+        fetch(url)
+          .then((response) => response.json())
+          .then((data) => {
+            currentProfile = data.results[0];
+            displayProfile();
+          })
+          .catch((error) =>
+            console.error("Error fetching random profile:", error)
+          );
+      }
+
+      function filter(gender) {
+        genderFilter = gender;
+        fetchRandomProfile();
+      }
+
+      function displayProfile() {
+        const card = document.getElementById("card");
+        card.innerHTML = `
+          <img src="${currentProfile.picture.large}" alt="Profile Picture">
+          <p>Name: ${currentProfile.name.first} </p>
+          <p>Age: ${currentProfile.dob.age}</p>
+          <p>Place of Residence: ${currentProfile.location.city}, ${currentProfile.location.state}, ${currentProfile.location.country}</p>
+        `;
+        if (currentProfile.gender === "female") {
+      card.style.backgroundColor = "lightpink";
+    } else {
+      card.style.backgroundColor = ""; // Reset background color for other genders
+    }
+    
+    card.classList = currentProfile.gender;
+      }
+
+      function swipe(direction) {
+      if (score <= 0) {
+        const answer = confirm('Do you want to swipe more?');
+
+        if (answer) {
+          score = 10; // Reset the score to 10
+          updateScore();
+        } else {
+          return; // If the user clicks "No", do nothing
+        }
+      }
+
+      if (likedProfiles.length >= 10) {
+        alert('Overview list is full. Delete a profile to swipe again.');
+        return;
+      }
+
+      if (direction === 'right') {
+        likedProfiles.push(currentProfile);
+        localStorage.setItem('likedProfiles', JSON.stringify(likedProfiles));
+        updateOverview();
+      }
+
+      fetchRandomProfile();
+      score--;
+      displayProfile();
+      updateScore(); // Update the score display
+    }
+
+    function updateScore() {
+      const scoreElement = document.getElementById('score');
+      scoreElement.textContent = `Score: ${score}`;
+    }
+
+      function updateOverview() {
+        const overview = document.getElementById("overview");
+        overview.innerHTML = "";
+
+        likedProfiles.forEach((profile) => {
+          const card = document.createElement("div");
+          card.classList = profile.gender;
+          card.innerHTML = `
+            <img src="${profile.picture.large}" alt="Profile Picture">
+            <p>Name: ${profile.name.first}</p>
+            <p>Age: ${profile.dob.age}</p>
+            <p>Place of Residence: ${profile.location.city}, ${profile.location.state}, ${profile.location.country}</p>
+            <button onclick="deleteProfile('${profile.name.first}')">Delete</button>
+            <button onclick="editProfile('${profile.name.first}', '${profile.dob.age}', '${profile.location.city}')">Edit</button>
+          `;
+          overview.appendChild(card);
+        });
+      }
+
+      function deleteProfile(name) {
+        likedProfiles = likedProfiles.filter(
+          (profile) => profile.name.first !== name
+        );
+        localStorage.setItem("likedProfiles", JSON.stringify(likedProfiles));
+        updateOverview();
+      }
+
+      function editProfile(name, age, place) {
+        profileIndex = likedProfiles.findIndex(
+          (profile) => profile.name.first === name
+        );
+
+        if (profileIndex !== -1) {
+          // Display the edit popup with the existing values
+          document.getElementById("newName").value = name;
+          document.getElementById("newAge").value = age;
+          document.getElementById("newPlace").value = place;
+
+          // Show overlay and popup
+          document.getElementById("overlay").style.display = "block";
+          document.getElementById("editPopup").style.display = "block";
+        }
+      }
+
+      function saveChanges() {
+        // Get the updated values from the popup
+        const newName = document.getElementById("newName").value;
+        const newAge = document.getElementById("newAge").value;
+        const newPlace = document.getElementById("newPlace").value;
+
+        // Update the profile with the new values
+        likedProfiles[profileIndex].name.first = newName;
+        likedProfiles[profileIndex].dob.age = newAge;
+        likedProfiles[profileIndex].location.city = newPlace;
+
+        // Save changes to localStorage and update the overview
+        localStorage.setItem("likedProfiles", JSON.stringify(likedProfiles));
+        updateOverview();
+
+        // Close the popup
+        closePopup();
+      }
+
+      function closePopup() {
+        // Hide overlay and popup
+        document.getElementById("overlay").style.display = "none";
+        document.getElementById("editPopup").style.display = "none";
+      }
+
+      fetchRandomProfile();
+      displayProfile();
+    </script>
+  </body>
+</html>
