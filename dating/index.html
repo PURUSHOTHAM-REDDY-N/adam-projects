@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dating App</title>
     <style>
+
+      /* ------- sextion one css starts here -----*/
       body {
         font-family: Arial, sans-serif;
         display: flex;
@@ -30,7 +32,9 @@
         object-fit: cover;
         border-radius: 10px;
       }
+            /*  ---- sextion one css ends here ----- */
 
+            /*  ---- sextion two css starts here -------*/
       #overview {
         display: flex;
         flex-wrap: wrap;
@@ -45,6 +49,9 @@
         border-color: pink;
       }
 
+    /*  ---- sextion two  css ends here----- */
+
+/*  ---- sextion three  css starts here */
       .error-message {
         color: red;
         margin-top: 10px;
@@ -71,6 +78,7 @@
         background: rgba(0, 0, 0, 0.5);
         z-index: 1;
       }
+      /*  ---- sextion three  css ends here */
     </style>
   </head>
   <body>
@@ -119,6 +127,8 @@
         updateOverview();
       };
 
+      //-------section one start (main function that displays profile card at top)-------
+
       function fetchRandomProfile() {
         const url = genderFilter
           ? `https://randomuser.me/api/?inc=gender,name,location,picture,dob&gender=${genderFilter}`
@@ -139,7 +149,6 @@
         genderFilter = gender;
         fetchRandomProfile();
       }
-
       function displayProfile() {
         const card = document.getElementById("card");
         card.innerHTML = `
@@ -185,11 +194,14 @@
       displayProfile();
       updateScore(); // Update the score display
     }
+//-------section one end (main function that displays profile card at top)-------
 
     function updateScore() {
       const scoreElement = document.getElementById('score');
       scoreElement.textContent = `Score: ${score}`;
     }
+
+            // ----- section two start (this is for  overview section where all the liked cards will be shown)-------
 
       function updateOverview() {
         const overview = document.getElementById("overview");
@@ -210,6 +222,9 @@
         });
       }
 
+      // ----secction two end ----------------------------------
+
+      // ----- section three start (this is wehre saved profiles in overview section is deleted or edites) ----------------------------
       function deleteProfile(name) {
         likedProfiles = likedProfiles.filter(
           (profile) => profile.name.first !== name
@@ -259,9 +274,12 @@
         document.getElementById("overlay").style.display = "none";
         document.getElementById("editPopup").style.display = "none";
       }
+      //-------- section 3 end ---------------------
 
+      // ------ this is the section where main functions are called called ----------- 
       fetchRandomProfile();
       displayProfile();
+      // ---------------------------
     </script>
   </body>
 </html>
