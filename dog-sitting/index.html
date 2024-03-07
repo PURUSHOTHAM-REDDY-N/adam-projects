@@ -254,13 +254,18 @@ if(!filter){
 
   const loadNewCard = async () => {
   
-      const [newDogImage, newProfile] = await Promise.all([fetchOneDogData(), fetchOneUserData()]);
-      // Add new data to global variables
-     
-      // Create and display a new card
+      await Promise.all([fetchOneDogData(), fetchOneUserData()]).then(
+        ()=>{
+          removeAllCards()
+          // Create and display a new card
       for (let i = 0; i < 10; i++) {
       createProfileCard(dogImages[i], profiles[i],i);
       }
+        }
+      );
+      // Add new data to global variables
+     
+      
    
   };
 
