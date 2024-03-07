@@ -127,7 +127,8 @@
 <script>
 
 // Declare dogImages and profiles as global variables
-let dogImages, profiles;
+let dogImages=[]
+let profiles=[];
 let filter=false;
 const dogGreetings = [
   "Waff waff",
@@ -152,6 +153,21 @@ const dogGreetings = [
     const data = await response.json();
     profiles = data.results; // Assign to the global variable
   };
+
+  const fetchOneDogData = async () => {
+    const response = await fetch(`https://dog.ceo/api/breeds/image/random/1`);
+    const data = await response.json();
+    console.log('one dog data ',data.message[0])
+    dogImages.push(data.message[0]); // Assign to the global variable
+  };
+
+  const fetchOneUserData = async (num) => {
+    const response = await fetch(`https://randomuser.me/api/?inc=name,location,picture&results=1`);
+    const data = await response.json();
+    console.log('one person data ',data.results[0])
+    profiles.push(data.results[0]); // Assign to the global variable
+  };
+
 
 
   // Fetch data from the dog API
@@ -238,9 +254,8 @@ if(!filter){
 
   const loadNewCard = async () => {
   
-      const [newDogImage, newProfile] = await Promise.all([fetchDogData(1), fetchUserData(1)]);
+      const [newDogImage, newProfile] = await Promise.all([fetchOneDogData(), fetchOneUserData()]);
       // Add new data to global variables
-      console.log(newDogImage,newProfile,'here')
      
       // Create and display a new card
       for (let i = 0; i < 10; i++) {
